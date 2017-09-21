@@ -45,12 +45,13 @@ mainRouter.use((req, res, next) => {
 mainRouter.get('/', (req, res) => {
   query.getCompleteImageEntries()
     .then(entries => {
-      res.render('index.pug', {entries})
+      res.render('index.pug', { entries })
     })
 })
 
 mainRouter.post('/', (req, res) => {
-  // 원본 이미지 업로드
+  // 원본 이미지 업로드 
+
   // 데이터베이스에 기록
   // 썸네일 작업 생성
   // 리다이렉트
