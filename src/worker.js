@@ -8,22 +8,26 @@ const query = require('./query')
 const image = require('./image')
 const queue = kue.createQueue()
 
-queue.process('thumbnail', async(job, done) => {
+queue.process('thumbnail', (job, done) => {
   const { id } = job.data
-  try {
-    // 이미지 항목 정보를 데이터베이스에서 가져온 후 (가상서비스의 디스크는 믿을게 못됨.)
-    const imageEntry = await query.getImageEntryById(id)
-    const res = await axios.get(imageEntry.original_url, {
-      responseType: 'arraybuffer' // axios가 똑똑하지 않으니까 어레이버퍼를 사용. arraybuffer 와 buffer의 차이 알아둘 것.
+  query.getImageEntryById(id)
+    .then(imageEntry => {
+      return axios.get(imageEntry.original_url, {
+        responseType: 'arraybuffer'
+      }).then(res => {
+        return sharp(res.data)
+          .resize(200, 200)
+          .crop(sharp.gravity.center)
+          .toBuffer()
+      }).then(buffer => {
+        return image.uploadImageFile(buffer)
+      }).then(location => {
+        return query.updateThumbnailUrlByid(id, location)
+      }).then(() => {
+        console.log('done')
+        done()
+      }).catch(err => {
+        done(err)
+      })
     })
-    const buffer = await sharp(res.data)
-      .resize(200, 200)
-      .crop(sharp.gravity.center)
-      .toBuffer()
-    const location = await image.uploadImageFile(buffer)
-    await query.updateThumbnailUrlByid(id, location)
-    done()
-  } catch (err) {
-    done(err)
-  }
 })
