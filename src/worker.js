@@ -23,6 +23,8 @@ queue.process('thumbnail', (job, done) => {
           .crop(sharp.gravity.center)
         res.data
       }).then(buffer => {
+        // 썸네일 업로드
+
         return image.uploadImageFile(buffer)
       }).then(location => {
         // 이미지 항목의 썸네일 URL 수정
@@ -33,6 +35,4 @@ queue.process('thumbnail', (job, done) => {
         done(err)
       })
     })
-    // 썸네일 업로드
-    // 이미지 항목의 썸네일 URL 수정 
 })
